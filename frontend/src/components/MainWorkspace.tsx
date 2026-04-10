@@ -14,6 +14,7 @@ import { useCallback, useRef, useState, type Dispatch, type SetStateAction } fro
 type LogLine = { text: string; kind: 'info' | 'evt' | 'err' }
 
 const apiBase = import.meta.env.VITE_API_URL ?? ''
+const uploadTimeoutMs = Number(import.meta.env.VITE_UPLOAD_TIMEOUT_MS ?? 30 * 60 * 1000)
 
 function appendLog(setter: Dispatch<SetStateAction<LogLine[]>>, line: LogLine) {
   setter((prev) => [...prev.slice(-200), line])
@@ -62,17 +63,48 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
 
     appendLog(setLogs, { text: 'POST /api/process', kind: 'info' })
 
+    const url = `${apiBase}/api/process`
     let res: Response
+    const ctrl = new AbortController()
+    const timer = window.setTimeout(() => ctrl.abort(), uploadTimeoutMs)
     try {
-      res = await fetch(`${apiBase}/api/process`, { method: 'POST', body: fd })
+      res = await fetch(url, { method: 'POST', body: fd, signal: ctrl.signal })
     } catch (e) {
-      appendLog(setLogs, { text: `Network error: ${e}`, kind: 'err' })
+      const name = e instanceof Error ? e.name : ''
+      const hint =
+        'Vite proxy: set VITE_PROXY_API=http://127.0.0.1:8787 (WSL2 port forward). ETIMEDOUT to 192.168… = stale WSL IP. Backend must listen on 0.0.0.0:8787. See npm terminal for [vite] /api proxy target.'
+      if (name === 'AbortError') {
+        appendLog(setLogs, {
+          text: `Upload timed out after ${Math.round(uploadTimeoutMs / 60_000)} min. ${hint}`,
+          kind: 'err',
+        })
+      } else {
+        appendLog(setLogs, {
+          text: `Network error: ${String(e)}. ${hint}`,
+          kind: 'err',
+        })
+      }
       setRunning(false)
       return
+    } finally {
+      window.clearTimeout(timer)
     }
 
     if (!res.ok) {
-      appendLog(setLogs, { text: `HTTP ${res.status}`, kind: 'err' })
+      let detail = ''
+      try {
+        const j = (await res.json()) as { message?: string; error?: string }
+        detail = j.message || j.error || ''
+      } catch {
+        /* ignore */
+      }
+      appendLog(
+        setLogs,
+        {
+          text: detail ? `HTTP ${res.status}: ${detail}` : `HTTP ${res.status} POST ${url}`,
+          kind: 'err',
+        },
+      )
       setRunning(false)
       return
     }

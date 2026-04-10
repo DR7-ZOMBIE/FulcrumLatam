@@ -3,7 +3,9 @@ backend/.venv-wsl/
 backend/__pycache__/
 backend/**/__pycache__/
 backend/output/
+backend/upload_tmp/
 frontend/node_modules/
 frontend/dist/
 .env
 *.local
+firebase-debug.log

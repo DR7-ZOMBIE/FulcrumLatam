@@ -9,8 +9,8 @@ const DEFAULT_POC_API_PORT = '8787'
 /**
  * Dev proxy for /api:
  * - VITE_PROXY_API=http://host:port — full base URL (highest priority)
- * - VITE_USE_WSL_API=true — Windows: pick WSL LAN IP + VITE_API_PORT (default 8787)
- * - default: http://127.0.0.1:8787
+ * - VITE_USE_WSL_API=true — Windows: WSL **LAN** IP + port (only if 127.0.0.1 does not forward)
+ * - default: http://127.0.0.1:8787 (WSL2 usually forwards this to uvicorn on 0.0.0.0)
  */
 function resolveApiTarget(env: Record<string, string>): string {
   if (env.VITE_PROXY_API?.trim()) {
@@ -51,6 +51,7 @@ function resolveApiTarget(env: Record<string, string>): string {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiTarget = resolveApiTarget(env)
+  console.info(`[vite] /api proxy target → ${apiTarget}`)
 
   return {
     plugins: [react(), tailwindcss()],
@@ -60,9 +61,17 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: apiTarget,
           changeOrigin: true,
-          // Long runs (video → Gemini) + SSE: avoid proxy closing early
+          // Long runs (video → Gemini) + SSE + large multipart
           timeout: 600_000,
           proxyTimeout: 600_000,
+          configure(proxy) {
+            proxy.on('error', (err) => {
+              console.error('[vite /api proxy]', err)
+            })
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.setTimeout(600_000)
+            })
+          },
         },
       },
     },

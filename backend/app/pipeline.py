@@ -1,12 +1,9 @@
 import asyncio
 import json
-import os
 import uuid
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from pathlib import Path
-from tempfile import NamedTemporaryFile
-
 from app.env_load import load_backend_env
 
 load_backend_env()
@@ -84,7 +81,7 @@ async def run_pipeline(
     job: JobRecord,
     *,
     upload_name: str | None,
-    upload_bytes: bytes | None,
+    upload_path: Path | None,
     use_sample_file: bool,
     force_demo_summary: bool,
 ) -> None:
@@ -100,31 +97,20 @@ async def run_pipeline(
         source_label = ""
 
         # Upload wins over "sample" so API clients and edge-case form order always transcribe media.
-        if upload_bytes and upload_name:
+        if upload_path and upload_name and upload_path.is_file():
             ext = _suffix(upload_name)
             await emit("ingest", {"mode": "upload", "filename": upload_name})
             if ext in TEXT_EXT:
-                transcript_text = upload_bytes.decode("utf-8", errors="replace")
+                transcript_text = upload_path.read_text(encoding="utf-8", errors="replace")
                 source_label = upload_name
             elif ext in MEDIA_EXT:
                 await emit("transcribing", {"detail": "Calling speech-to-text API"})
                 loop = asyncio.get_event_loop()
-
-                def write_temp() -> str:
-                    with NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-                        tmp.write(upload_bytes)
-                        return tmp.name
-
-                tmp_path = await loop.run_in_executor(None, write_temp)
-                try:
-                    transcript_text = await loop.run_in_executor(
-                        None, lambda: transcribe_media(tmp_path, ext)
-                    )
-                finally:
-                    try:
-                        os.unlink(tmp_path)
-                    except OSError:
-                        pass
+                media_path = str(upload_path)
+                transcript_text = await loop.run_in_executor(
+                    None,
+                    lambda: transcribe_media(media_path, ext),
+                )
                 source_label = upload_name
             else:
                 raise ValueError(

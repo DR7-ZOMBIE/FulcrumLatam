@@ -2,6 +2,7 @@ import asyncio
 import os
 from asyncio import QueueEmpty
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from app.env_load import load_backend_env
 
@@ -10,9 +11,29 @@ load_backend_env()
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app._version import API_REVISION
 from app.pipeline import jobs, register_job, run_pipeline, subscribe
+
+# Stream uploads to disk so large MP4s do not load entirely into RAM (avoids crashes / Failed to fetch).
+_UPLOAD_CHUNK = 8 * 1024 * 1024
+_UPLOAD_DIR = Path(__file__).resolve().parent.parent / "upload_tmp"
+
+
+async def _stream_upload_to_disk(job_id: str, upload: UploadFile) -> tuple[Path, str]:
+    _UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    raw_name = upload.filename or "upload.bin"
+    suffix = Path(raw_name).suffix
+    dest = _UPLOAD_DIR / f"{job_id}{suffix}"
+    await upload.seek(0)
+    with dest.open("wb") as out:
+        while True:
+            chunk = await upload.read(_UPLOAD_CHUNK)
+            if not chunk:
+                break
+            out.write(chunk)
+    return dest, raw_name
 
 
 @asynccontextmanager
@@ -45,6 +66,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class _PrivateNetworkCorsMiddleware(BaseHTTPMiddleware):
+    """Chrome: requests from localhost (Vite) to a LAN IP (WSL) need this on the preflight + response."""
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+        return response
+
+
+app.add_middleware(_PrivateNetworkCorsMiddleware)
 
 
 @app.get("/api/health")
@@ -80,20 +113,39 @@ async def process(
     file: UploadFile | None = File(None),
 ):
     job = register_job()
-    upload_bytes: bytes | None = None
+    upload_path: Path | None = None
     upload_name: str | None = None
     if file is not None and file.filename:
-        upload_bytes = await file.read()
-        upload_name = file.filename
+        try:
+            upload_path, upload_name = await _stream_upload_to_disk(job.job_id, file)
+        except Exception as exc:  # noqa: BLE001 — return JSON instead of 500 before task starts
+            jid = job.job_id
+            jobs.pop(jid, None)
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "upload_failed",
+                    "message": str(exc),
+                    "api_revision": API_REVISION,
+                },
+                headers={"X-API-Revision": API_REVISION},
+            )
 
     async def kickoff() -> None:
-        await run_pipeline(
-            job,
-            upload_name=upload_name,
-            upload_bytes=upload_bytes,
-            use_sample_file=use_sample_file,
-            force_demo_summary=force_demo_summary,
-        )
+        try:
+            await run_pipeline(
+                job,
+                upload_name=upload_name,
+                upload_path=upload_path,
+                use_sample_file=use_sample_file,
+                force_demo_summary=force_demo_summary,
+            )
+        finally:
+            if upload_path is not None:
+                try:
+                    upload_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
 
     asyncio.create_task(kickoff())
     return JSONResponse(

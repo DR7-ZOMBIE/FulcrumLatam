@@ -33,26 +33,17 @@ Open `http://127.0.0.1:5173`. Enable “Use bundled sample” and run, or upload
 
 **POC API port is `8787`** (not 8000) to avoid clashes with other tools. Scripts `run_backend_wsl.sh` / `run_dev_wsl.sh` use it by default; override with **`PORT=9000 ./run_backend_wsl.sh`**.
 
-**Windows + WSL gotcha:** If you run **`npm run dev` on Windows** but **`uvicorn` only inside WSL**, the default proxy hits **`127.0.0.1:8787` on Windows** — wrong if the API is only in WSL. You will see `api_revision MISSING`.
+**Windows + WSL2 + Vite:** With uvicorn on **`0.0.0.0:8787`** in WSL, **prefer `VITE_PROXY_API=http://127.0.0.1:8787`** in `frontend/.env.development`. Recent WSL2 **publishes that port on Windows localhost**, so you avoid chasing a **stale `192.168.x.x` IP** (Vite will log **`ETIMEDOUT`** to the old address).
 
-Fix (pick one):
+If **`127.0.0.1:8787` does not reach WSL** on your machine, use the current eth IP: **`wsl -e hostname -I`** → set **`VITE_PROXY_API=http://<that-ip>:8787`**, or **`VITE_USE_WSL_API=true`** so Vite resolves it at startup.
 
-1. **`VITE_PROXY_API=http://<WSL-LAN-IP>:8787`** in `frontend/.env.development` (mirrored networking: IP from `ip a`, e.g. `192.168.1.x`). The repo ships an example; adjust the IP if DHCP changes.
-2. **`VITE_USE_WSL_API=true`** — Vite picks the WSL IP and uses port **8787** (or **`VITE_API_PORT`**).
-3. Run uvicorn **on Windows** from `backend/` on **8787** so `127.0.0.1:8787` matches the default Vite proxy.
+Run uvicorn **on Windows** from `backend/` on **8787** if you want **`127.0.0.1`** without WSL in the path.
 
-If everything runs on Windows only, you can delete `frontend/.env.development` or point `VITE_PROXY_API` at `http://127.0.0.1:8787`.
-
-**WSL uvicorn must bind `0.0.0.0`**, not only `127.0.0.1`, or the Windows→WSL proxy gets **`Failed to fetch` / `ERR_CONNECTION_RESET`**. The `run_backend_wsl.sh` script already uses `--host 0.0.0.0`.
-
-**This is not a curl/CORS bug:** the browser talks to Vite (`localhost:5173`), and Vite proxies `/api`. Curl to `127.0.0.1:8787` only hits **Windows**, not WSL. Compare:
+**WSL uvicorn must bind `0.0.0.0`** (scripts already do). Quick check from PowerShell:
 
 ```powershell
 curl.exe -s http://127.0.0.1:8787/api/health
-curl.exe -s http://192.168.REPLACE.WSL.IP:8787/api/health
 ```
-
-If the first JSON has no `api_revision` (or wrong behavior) and the second matches your WSL logs, the proxy fix above is what you need.
 
 ### WSL / Linux
 

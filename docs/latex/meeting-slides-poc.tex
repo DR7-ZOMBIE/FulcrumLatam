@@ -1,0 +1,192 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{parskip}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!8},
+  columns=fullflexible,
+}
+
+\hypersetup{
+  pdftitle={Meeting to Slides POC — Technical Documentation},
+  pdfauthor={FulcrumLATAM / Main Street AI Advisors POC},
+}
+
+\title{\textbf{Meeting $\rightarrow$ Slides Proof of Concept}\\[0.5em]
+\large Technical documentation (architecture, API, and operations)}
+\author{FulcrumLATAM / Main Street AI Advisors}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------------
+\section{Purpose and scope}
+
+This repository implements a \textbf{proof of concept (POC)} for an internal workflow: ingest a \textbf{meeting transcript} or \textbf{audio/video media}, produce a structured \textbf{executive briefing} (JSON schema), and generate an editable \textbf{Microsoft PowerPoint} deck (\texttt{.pptx}) suitable for manual import into Google Slides. A \textbf{web UI} shows live progress via \textbf{Server-Sent Events (SSE)}.
+
+\textbf{Explicit non-goals} for the POC include: native Google Slides API with OAuth, multi-tenant storage, and production-grade security controls. Those are outlined as future work.
+
+% ---------------------------------------------------------------------------
+\section{High-level architecture}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Frontend:} React~19 + Vite~6 + TypeScript, Tailwind~CSS v4, Lucide icons. Single main workspace component drives upload, form flags, \texttt{fetch} to start jobs, and \texttt{EventSource} for SSE.
+  \item \textbf{Backend:} Python~3.11+ with FastAPI and Uvicorn. In-memory job registry; asynchronous pipeline executed as a background task per request.
+  \item \textbf{LLM providers:} Google Gemini (recommended) via the unified \texttt{google-genai} SDK (Developer API / AI Studio key). OpenAI is optional for summarization and Whisper-style transcription when configured.
+  \item \textbf{Artifacts:} Per-job directory under \texttt{backend/output/<job\_id>/} containing \texttt{transcript.txt}, \texttt{summary.json}, and \texttt{meeting\_briefing.pptx}.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section{End-to-end data flow}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{POST} \texttt{/api/process} with \texttt{multipart/form-data}: optional file, booleans \texttt{use\_sample\_file}, \texttt{force\_demo\_summary}.
+  \item The handler registers a job ID, \textbf{streams the upload to disk} in fixed-size chunks (avoiding loading large video into RAM), then schedules \texttt{run\_pipeline}.
+  \item Response returns immediately with \texttt{job\_id} and \texttt{X-API-Revision} header for version tracing.
+  \item \textbf{Pipeline:}
+  \begin{itemize}
+    \item If an uploaded file wins over ``sample'' mode: text files are read from disk; media extensions trigger \textbf{transcription} (Gemini file upload + generate, or OpenAI transcription).
+    \item Transcript is normalized (\texttt{extract\_transcript\_text}), preview stored, \texttt{transcript.txt} written, SSE \texttt{artifact\_written}.
+    \item \textbf{Summarization:} Gemini or OpenAI JSON-mode style output, or deterministic template if LLM disabled or no keys.
+    \item \textbf{Slides:} \texttt{python-pptx} builds the deck; JSON sidecar written.
+    \item SSE \texttt{completed} includes relative download paths for transcript, PPTX, and JSON.
+  \end{itemize}
+  \item Client opens \texttt{GET /api/jobs/\{id\}/stream} (SSE) for live events until \texttt{completed} or \texttt{error}.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+\section{Backend modules}
+
+\subsection{\texttt{app/main.py}}
+FastAPI application: CORS for local Vite origins plus optional \texttt{CORS\_EXTRA\_ORIGINS}; middleware adding \texttt{Access-Control-Allow-Private-Network} for Chrome when crossing localhost $\rightarrow$ LAN IP; \texttt{/api/health} exposing masked key presence and revision; process endpoint with streaming upload to \texttt{backend/upload\_tmp/}; SSE stream with heartbeats; file download routes.
+
+\subsection{\texttt{app/pipeline.py}}
+Job lifecycle, broadcast queues, \texttt{run\_pipeline} orchestration. Upload precedence over bundled sample. Supported media extensions include \texttt{.mp3}, \texttt{.mp4}, \texttt{.webm}, \texttt{.wav}, \texttt{.m4a}, etc.
+
+\subsection{\texttt{app/summarizer.py}}
+Gemini client forced to \textbf{Developer API} (\texttt{vertexai=False}) with configurable HTTP timeout. Model ID from \texttt{GEMINI\_MODEL} (optional \texttt{models/} prefix stripped). File polling for Gemini uploads with configurable deadline. Structured JSON summary matching the POC schema; OpenAI path mirrors intent.
+
+\subsection{\texttt{app/slides\_builder.py}}
+Maps summary fields to slide layouts via \texttt{python-pptx}.
+
+\subsection{\texttt{app/transcript\_clean.py}}
+Strips email noise and normalizes the bundled synthetic transcript format (marker / timestamp cues).
+
+\subsection{\texttt{app/env\_load.py}}
+Loads \texttt{backend/.env} with UTF-8-sig to tolerate Windows BOM.
+
+\subsection{\texttt{app/\_version.py}}
+\texttt{API\_REVISION} string surfaced in health checks and SSE payloads for deployment verification.
+
+% ---------------------------------------------------------------------------
+\section{HTTP API summary}
+
+\begin{tabular}{@{}llp{8cm}@{}}
+\toprule
+\textbf{Method} & \textbf{Path} & \textbf{Description} \\
+\midrule
+GET & \texttt{/api/health} & Liveness; key flags; Gemini client mode note; revision. \\
+POST & \texttt{/api/process} & Multipart: file + form fields; returns \texttt{job\_id}. \\
+GET & \texttt{/api/jobs/\{id\}/stream} & SSE event stream (\texttt{text/event-stream}). \\
+GET & \texttt{/api/jobs/\{id\}/download/transcript} & Plain text transcript. \\
+GET & \texttt{/api/jobs/\{id\}/download/pptx} & PowerPoint file. \\
+GET & \texttt{/api/jobs/\{id\}/download/json} & Summary JSON. \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+\noindent
+Representative SSE event names: \texttt{job\_started}, \texttt{ingest}, \texttt{transcribing}, \texttt{transcript\_ready}, \texttt{artifact\_written}, \texttt{summarizing}, \texttt{building\_slides}, \texttt{completed}, \texttt{error}, \texttt{heartbeat}.
+
+% ---------------------------------------------------------------------------
+\section{Frontend configuration}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{\texttt{VITE\_PROXY\_API}} (development): target base URL for Vite's \texttt{/api} reverse proxy (e.g.\ \texttt{http://127.0.0.1:8787} when the API runs in WSL2 with port forwarding).
+  \item \textbf{\texttt{VITE\_API\_URL}} (optional): if set, browser calls the API directly (same host as value); leave unset to use same-origin \texttt{/api} through Vite (recommended on Windows + Chrome to avoid private-network and proxy issues).
+  \item \textbf{\texttt{VITE\_UPLOAD\_TIMEOUT\_MS}}: abort guard for very long uploads (default 30 minutes).
+  \item \textbf{\texttt{VITE\_USE\_WSL\_API}}: Windows helper to auto-resolve WSL LAN IP when \texttt{VITE\_PROXY\_API} is unset.
+\end{itemize}
+
+The UI ensures an attached file is always sent and overrides ``sample'' mode to prevent accidental use of the bundled transcript when a user re-checks the sample checkbox after picking media.
+
+% ---------------------------------------------------------------------------
+\section{Environment variables (backend)}
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{GEMINI\_API\_KEY} or \texttt{GOOGLE\_API\_KEY} --- AI Studio key for Gemini.
+  \item \texttt{OPENAI\_API\_KEY} --- optional fallback for summary and Whisper transcription.
+  \item \texttt{GEMINI\_MODEL} --- model id (default \texttt{gemini-2.0-flash}).
+  \item \texttt{GEMINI\_HTTP\_TIMEOUT\_SEC}, \texttt{GEMINI\_FILE\_ACTIVE\_DEADLINE\_SEC} --- long media tuning.
+  \item \texttt{CORS\_EXTRA\_ORIGINS} --- comma-separated origins if needed beyond localhost Vite ports.
+\end{itemize}
+
+\textbf{Never commit real keys.} Rotate any key exposed in chat, logs, or public repositories; Google may return HTTP~403 if a key is reported as leaked.
+
+% ---------------------------------------------------------------------------
+\section{Dependencies}
+
+\textbf{Python} (\texttt{requirements.txt}): \texttt{fastapi}, \texttt{uvicorn[standard]}, \texttt{python-multipart}, \texttt{python-pptx}, \texttt{openai}, \texttt{google-genai}, \texttt{python-dotenv}.
+
+\textbf{Node} (\texttt{frontend/package.json}): React, Vite, Tailwind, Lucide, TypeScript toolchain.
+
+% ---------------------------------------------------------------------------
+\section{Operational scripts}
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{backend/run\_dev\_wsl.sh} --- creates/syncs \texttt{.venv-wsl}, runs Uvicorn on \texttt{0.0.0.0:8787} (port overridable).
+  \item \texttt{run\_backend\_wsl.sh} (repo root) --- same from root path.
+\end{itemize}
+
+Default API port \textbf{8787} avoids common conflicts on 8000.
+
+% ---------------------------------------------------------------------------
+\section{Repository layout (essential paths)}
+
+\begin{lstlisting}
+backend/app/          # FastAPI application package
+backend/output/       # Per-job artifacts (gitignored)
+backend/upload_tmp/   # Ephemeral uploads (gitignored)
+frontend/src/         # React source
+deliverables/         # Architecture, cost, stakeholder docs (Markdown)
+Syntethic_AI_Transcript.txt   # Bundled sample (filename as provided)
+docs/latex/           # This documentation source
+\end{lstlisting}
+
+% ---------------------------------------------------------------------------
+\section{Security and privacy notes (POC level)}
+
+\begin{itemize}[leftmargin=*]
+  \item Media and transcripts pass through temp paths and process memory; outputs remain on local disk under \texttt{backend/output/}.
+  \item Production would require tenant isolation, encryption at rest, retention policies, audit logging, and secret management (e.g.\ Cloud Secret Manager).
+  \item Firebase Hosting alone is a poor fit for long SSE and large multipart bodies; Cloud Run (or similar) behind rewrites is the documented direction.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+\section{Synthetic sample scenario}
+
+The file \texttt{Syntethic\_AI\_Transcript.txt} contains the \textbf{``Synthetic Transcript -- Retail AI Automation Discovery Call''} (BrightLane Retail narrative) used for demos without uploading media.
+
+% ---------------------------------------------------------------------------
+\section{Building this PDF}
+
+From \texttt{docs/latex} run \texttt{pdflatex meeting-slides-poc.tex} twice to resolve references. See \texttt{README.txt} in the same folder.
+
+\end{document}
