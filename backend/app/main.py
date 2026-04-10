@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from asyncio import QueueEmpty
 from contextlib import asynccontextmanager
@@ -14,7 +15,8 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app._version import API_REVISION
-from app.pipeline import jobs, register_job, run_pipeline, subscribe
+from app.pipeline import broadcast, jobs, register_job, run_pipeline, subscribe
+from app.summarizer import _gemini_model_id, gemini_http_timeout_health
 
 # Stream uploads to disk so large MP4s do not load entirely into RAM (avoids crashes / Failed to fetch).
 _UPLOAD_CHUNK = 8 * 1024 * 1024
@@ -54,7 +56,11 @@ app = FastAPI(title="Meeting → Slides POC", lifespan=lifespan)
 
 _origins = [
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
     "http://localhost:4173",
     "http://127.0.0.1:4173",
 ]
@@ -80,6 +86,39 @@ class _PrivateNetworkCorsMiddleware(BaseHTTPMiddleware):
 app.add_middleware(_PrivateNetworkCorsMiddleware)
 
 
+@app.get("/")
+def root():
+    """Avoid a bare 404 when someone opens the backend URL in a browser."""
+    return {
+        "service": "Meeting → Slides POC API",
+        "api_revision": API_REVISION,
+        "endpoints": {
+            "health": "/api/health",
+            "process": "POST /api/process",
+            "stream": "GET /api/jobs/{job_id}/stream",
+            "downloads": {
+                "transcript": "GET /api/jobs/{job_id}/download/transcript",
+                "pptx": "GET /api/jobs/{job_id}/download/pptx",
+                "json": "GET /api/jobs/{job_id}/download/json",
+            },
+            "openapi": "/docs",
+        },
+    }
+
+
+@app.get("/api")
+def api_index():
+    """GET /api via Vite proxy was returning 404; this lists real routes."""
+    return {
+        "api_revision": API_REVISION,
+        "health": "/api/health",
+        "process": "POST /api/process (multipart)",
+        "stream": "GET /api/jobs/{job_id}/stream",
+        "downloads": "/api/jobs/{job_id}/download/{transcript|pptx|json}",
+        "openapi": "/docs",
+    }
+
+
 @app.get("/api/health")
 def health():
     """Masks keys; useful to confirm `.env` is loaded before transcribing media."""
@@ -103,6 +142,10 @@ def health():
             "any_gemini": g or gg,
             "GOOGLE_GENAI_USE_VERTEXAI": vertex_env,
         },
+        "gemini_http": gemini_http_timeout_health(),
+        "gemini_model": _gemini_model_id(),
+        # If this path is not your OneDrive repo, you are running a different uvicorn cwd / copy.
+        "app_main_file": str(Path(__file__).resolve()),
     }
 
 
@@ -140,6 +183,17 @@ async def process(
                 use_sample_file=use_sample_file,
                 force_demo_summary=force_demo_summary,
             )
+        except Exception as exc:  # noqa: BLE001 — safety net if run_pipeline leaks
+            if job.status != "failed":
+                job.status = "failed"
+                raw = str(exc).strip()
+                job.error = raw or repr(exc) or type(exc).__name__
+                await broadcast(
+                    job,
+                    "error",
+                    {"message": job.error, "api_revision": API_REVISION},
+                )
+            logging.getLogger(__name__).exception("kickoff failed job_id=%s", job.job_id)
         finally:
             if upload_path is not None:
                 try:
@@ -165,8 +219,20 @@ async def job_stream(job_id: str):
         raise HTTPException(status_code=404, detail="Unknown job_id")
 
     async def gen():
-        # Initial snapshot for late subscribers
-        yield f"data: {job.event('subscribed', {'status': job.status, 'step': job.step})}\n\n"
+        # Snapshot for subscribers who connect after the pipeline already finished (SSE events are not replayed).
+        snap: dict = {"status": job.status, "step": job.step}
+        # Do not use `if job.error:` — empty string is a valid (but unhelpful) message and must be surfaced.
+        if job.status == "failed":
+            snap["error"] = (job.error or "").strip() or "(failed with no message; see uvicorn log for traceback)"
+        elif job.error:
+            snap["error"] = job.error
+        if job.status == "completed":
+            snap["transcript"] = f"/api/jobs/{job.job_id}/download/transcript"
+            snap["pptx"] = f"/api/jobs/{job.job_id}/download/pptx"
+            snap["json"] = f"/api/jobs/{job.job_id}/download/json"
+            snap["used_llm"] = job.used_llm
+            snap["api_revision"] = API_REVISION
+        yield f"data: {job.event('subscribed', snap)}\n\n"
         while True:
             try:
                 line = await asyncio.wait_for(q.get(), timeout=120.0)

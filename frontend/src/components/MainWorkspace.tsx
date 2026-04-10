@@ -37,6 +37,7 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
     json: string
   } | null>(null)
   const esRef = useRef<EventSource | null>(null)
+  const runBusyRef = useRef(false)
   const [drag, setDrag] = useState(false)
 
   const stopStream = useCallback(() => {
@@ -45,6 +46,19 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
   }, [])
 
   const run = async () => {
+    if (runBusyRef.current) {
+      appendLog(setLogs, {
+        text: 'Run already in progress — wait for it to finish, or use Stop SSE then try again.',
+        kind: 'info',
+      })
+      return
+    }
+    runBusyRef.current = true
+    const endRun = () => {
+      runBusyRef.current = false
+      setRunning(false)
+    }
+
     stopStream()
     setRunning(true)
     setLogs([])
@@ -84,7 +98,7 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
           kind: 'err',
         })
       }
-      setRunning(false)
+      endRun()
       return
     } finally {
       window.clearTimeout(timer)
@@ -105,7 +119,7 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
           kind: 'err',
         },
       )
-      setRunning(false)
+      endRun()
       return
     }
 
@@ -131,9 +145,36 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
         const payload = JSON.stringify(msg.data)
         if (msg.event === 'error') {
           appendLog(setLogs, { text: `${msg.event}: ${payload}`, kind: 'err' })
-          setRunning(false)
+          endRun()
           es.close()
           return
+        }
+        // Job may have finished before EventSource opened; first line is "subscribed" with full state.
+        if (msg.event === 'subscribed') {
+          const st = String(msg.data.status ?? '')
+          if (st === 'failed') {
+            const raw = msg.data.error != null ? String(msg.data.error) : ''
+            const errMsg = raw.trim() || `No error field in payload: ${payload}`
+            appendLog(setLogs, { text: `subscribed (already failed): ${errMsg}`, kind: 'err' })
+            endRun()
+            es.close()
+            return
+          }
+          if (st === 'completed') {
+            appendLog(setLogs, { text: `subscribed ${payload}`, kind: 'evt' })
+            const d = msg.data as { transcript?: string; pptx?: string; json?: string }
+            const base = apiBase || ''
+            if (d.pptx && d.json) {
+              setDoneUrls({
+                transcript: d.transcript ? `${base}${d.transcript}` : '',
+                pptx: `${base}${d.pptx}`,
+                json: `${base}${d.json}`,
+              })
+            }
+            endRun()
+            es.close()
+            return
+          }
         }
         appendLog(setLogs, { text: `${msg.event} ${payload}`, kind: 'evt' })
         if (msg.event === 'completed') {
@@ -146,7 +187,7 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
               json: `${base}${d.json}`,
             })
           }
-          setRunning(false)
+          endRun()
           es.close()
         }
       } catch {
@@ -156,7 +197,7 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
 
     es.onerror = () => {
       appendLog(setLogs, { text: 'SSE connection closed or errored', kind: 'err' })
-      setRunning(false)
+      endRun()
       es.close()
     }
   }
@@ -208,8 +249,8 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
             <code className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-zinc-400">
               GEMINI_API_KEY
             </code>{' '}
-            on the server). Each run saves <strong>transcript.txt</strong>, <strong>summary.json</strong>, and{' '}
-            <strong>meeting_briefing.pptx</strong> under <code className="font-mono text-xs text-zinc-500">backend/output/&lt;job&gt;/</code> and you can download all three from here when the job finishes.
+            on the server).             Each run saves <strong>transcript.txt</strong>, <strong>summary.json</strong>, and{' '}
+            <strong>meeting_briefing.pptx</strong> under <code className="font-mono text-xs text-zinc-500">backend/output/&lt;job&gt;/</code> and you can download all three from here when the job finishes. Long videos can take many minutes (upload to Gemini + transcription); the UI stays on &quot;Running&quot; until the stream finishes or errors.
           </p>
         </div>
 
@@ -333,8 +374,12 @@ export function MainWorkspace({ onBackToSplash }: WorkspaceProps) {
                 </button>
                 <button
                   type="button"
-                  disabled={running}
-                  onClick={() => stopStream()}
+                  disabled={!running}
+                  onClick={() => {
+                    stopStream()
+                    runBusyRef.current = false
+                    setRunning(false)
+                  }}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-transparent px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.04] disabled:opacity-40"
                 >
                   <Square className="h-4 w-4" strokeWidth={2} />

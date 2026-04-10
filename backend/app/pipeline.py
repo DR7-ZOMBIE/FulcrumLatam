@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import uuid
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
@@ -10,7 +11,12 @@ load_backend_env()
 
 from app._version import API_REVISION
 from app.slides_builder import build_deck, write_summary_json
-from app.summarizer import llm_provider_configured, summarize_transcript, transcribe_media
+from app.summarizer import (
+    llm_provider_configured,
+    summarize_transcript,
+    summary_input_char_limit,
+    transcribe_media,
+)
 from app.transcript_clean import extract_transcript_text
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +25,8 @@ OUTPUT_DIR = PROJECT_ROOT / "backend" / "output"
 
 TEXT_EXT = {".txt", ".text", ".md"}
 MEDIA_EXT = {".mp3", ".mp4", ".webm", ".wav", ".m4a", ".mpeg", ".mpga"}
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -176,7 +184,21 @@ async def run_pipeline(
                 output_path=pptx_path,
             ),
         )
-        await loop.run_in_executor(None, lambda: write_summary_json(summary, json_path))
+        cap = summary_input_char_limit()
+        await loop.run_in_executor(
+            None,
+            lambda: write_summary_json(
+                summary,
+                json_path,
+                meta={
+                    "transcript_character_count": len(transcript_text),
+                    "summarized_character_cap": cap,
+                    "summarized_chars_effective": min(len(transcript_text), cap),
+                    "transcript_truncated_for_summary": len(transcript_text) > cap,
+                    "source": source_label,
+                },
+            ),
+        )
 
         job.pptx_path = pptx_path
         job.json_path = json_path
@@ -194,8 +216,10 @@ async def run_pipeline(
         )
     except Exception as exc:  # noqa: BLE001 — POC boundary
         job.status = "failed"
-        job.error = str(exc)
+        raw = str(exc).strip()
+        job.error = raw or repr(exc) or type(exc).__name__
+        _log.exception("Pipeline failed job_id=%s", job.job_id)
         await emit(
             "error",
-            {"message": str(exc), "api_revision": API_REVISION},
+            {"message": job.error, "api_revision": API_REVISION},
         )
