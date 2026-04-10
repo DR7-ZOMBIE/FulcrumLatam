@@ -1,20 +1,32 @@
+\babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}Purpose and scope}{2}{section.1}%
-\contentsline {section}{\numberline {2}High-level architecture}{2}{section.2}%
-\contentsline {section}{\numberline {3}End-to-end data flow}{2}{section.3}%
-\contentsline {section}{\numberline {4}Backend modules}{3}{section.4}%
-\contentsline {subsection}{\numberline {4.1}\texttt {app/main.py}}{3}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}\texttt {app/pipeline.py}}{3}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}\texttt {app/summarizer.py}}{3}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}\texttt {app/slides\_builder.py}}{3}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}\texttt {app/transcript\_clean.py}}{3}{subsection.4.5}%
-\contentsline {subsection}{\numberline {4.6}\texttt {app/env\_load.py}}{3}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}\texttt {app/\_version.py}}{3}{subsection.4.7}%
-\contentsline {section}{\numberline {5}HTTP API summary}{3}{section.5}%
-\contentsline {section}{\numberline {6}Frontend configuration}{4}{section.6}%
-\contentsline {section}{\numberline {7}Environment variables (backend)}{4}{section.7}%
-\contentsline {section}{\numberline {8}Dependencies}{4}{section.8}%
-\contentsline {section}{\numberline {9}Operational scripts}{4}{section.9}%
-\contentsline {section}{\numberline {10}Repository layout (essential paths)}{4}{section.10}%
-\contentsline {section}{\numberline {11}Security and privacy notes (POC level)}{5}{section.11}%
-\contentsline {section}{\numberline {12}Synthetic sample scenario}{5}{section.12}%
-\contentsline {section}{\numberline {13}Building this PDF}{5}{section.13}%
+\contentsline {subsection}{\numberline {1.1}What the product does}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Explicit non-goals}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Why this solution is robust}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Failure modes considered}{3}{subsection.2.1}%
+\contentsline {section}{\numberline {3}High-level architecture}{3}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Technology stack}{4}{subsection.3.1}%
+\contentsline {section}{\numberline {4}End-to-end data flow}{4}{section.4}%
+\contentsline {section}{\numberline {5}Backend modules (detailed)}{4}{section.5}%
+\contentsline {subsection}{\numberline {5.1}\texttt {app/main.py}}{4}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}\texttt {app/pipeline.py}}{5}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}\texttt {app/summarizer.py}}{5}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}\texttt {app/slides\_builder.py}}{5}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}\texttt {app/transcript\_clean.py}}{5}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}\texttt {app/env\_load.py}}{5}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}\texttt {app/\_version.py}}{5}{subsection.5.7}%
+\contentsline {section}{\numberline {6}JSON schema and metadata}{5}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Primary fields}{5}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}\texttt {\_briefing\_meta}}{6}{subsection.6.2}%
+\contentsline {section}{\numberline {7}HTTP API reference}{6}{section.7}%
+\contentsline {subsection}{\numberline {7.1}SSE event names}{6}{subsection.7.1}%
+\contentsline {section}{\numberline {8}Environment variables}{6}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Backend (\texttt {backend/.env})}{6}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Frontend (Vite)}{7}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Networking and local development}{7}{section.9}%
+\contentsline {section}{\numberline {10}Security and privacy (POC level)}{7}{section.10}%
+\contentsline {section}{\numberline {11}Operational scripts}{7}{section.11}%
+\contentsline {section}{\numberline {12}Repository layout (essential)}{7}{section.12}%
+\contentsline {section}{\numberline {13}Synthetic sample scenario}{8}{section.13}%
+\contentsline {section}{\numberline {14}Future work}{8}{section.14}%
+\contentsline {section}{\numberline {15}Building this PDF}{8}{section.15}%
