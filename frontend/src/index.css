@@ -1,0 +1,69 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-surface-0: #09090b;
+  --color-surface-1: #0c0c0f;
+  --color-surface-2: #141418;
+  --color-surface-3: #1c1c22;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+
+  --color-accent: #2dd4bf;
+  --color-accent-dim: rgba(45, 212, 191, 0.12);
+  --color-accent-hover: #5eead4;
+
+}
+
+@keyframes splash-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply min-h-screen bg-[var(--color-surface-0)] font-sans text-zinc-100;
+  }
+}
+
+@layer utilities {
+  .animate-splash-fade {
+    animation: splash-fade 0.9s ease-out forwards;
+  }
+  .animate-orbit {
+    animation: orbit 22s linear infinite;
+  }
+  .animate-orbit-slow {
+    animation: orbit 32s linear infinite reverse;
+  }
+  .animate-shimmer-opacity {
+    animation: shimmer 8s ease-in-out infinite;
+  }
+}

@@ -1,0 +1,456 @@
+Se ha añadido el archivo adjunto image.png. Ninguno seleccionado 
+
+
+Ir al contenido
+Uso de Gmail con lectores de pantalla
+1 de 118.065
+AI Engineer at FulcrumLATAM
+Recibidos
+Resumir este correo
+
+Santiago Lopez
+8 abr 2026, 16:20 (hace 2 días)
+Hi Dennis, I hope you are doing well. Thanks again for your time today and for your interest in this role. Below is the goal for the AI Engineer position test.
+
+Santiago Lopez
+Archivos adjuntos
+12:55 (hace 6 minutos)
+para mí
+
+Parece que este mensaje está en inglés
+Hi Dennis, I hope you are doing well. 
+
+As discussed, please find the test instructions for the AI Engineer position attached and the working material in this link
+
+If anything isn’t clear, feel free to reach out. When working on it, please stop at the 2-hour mark and share your results. If you decide to complete the assessment, you're free to do so. 
+We’re mainly looking to understand your approach and time management.
+
+I wish you all the best
+Regards,
+Photo
+
+Santiago Lopez
+
+HR & Client Success Specialist
+
+FulcrumLATAM
+
+Icon
+
++1 ‪470 231-9654
+
+Icon
+
+santiago@fulcrumlatam.co
+
+Linkedin Icon
+
+ 2 archivos adjuntos
+  •  Analizados por Gmail
+
+
+
+Analizar con PhishGuard
+Synthetic Transcript – Retail AI Automation Discovery Call
+
+Company: BrightLane Retail
+Industry: Multi-location specialty retail / home goods / seasonal decor
+Meeting Length: ~20 minutes
+Participants:
+- Sarah Kim (CEO, BrightLane Retail)
+- Marcus Lee (Director of Operations, BrightLane Retail)
+- Tina Patel (Ecommerce & Customer Experience Manager, BrightLane Retail)
+- Alex Rivera (AI Automation Specialist / Consultant)
+
+[00:00] Alex:
+Thanks, everyone, for making time today. I know we’ve only got about 20 minutes, so maybe we can keep this pretty practical. My goal is really to understand where the biggest operational pain points are, what’s repetitive, what feels manual, and where an AI-enabled workflow might realistically help without creating a giant IT project. Does that sound right?
+
+[00:18] Sarah:
+Yeah, that’s exactly right. We are not looking for some huge enterprise transformation. We’re a growing retail company, but we’re still pretty lean. We have 14 stores, an ecommerce site, and a small corporate team, so we need things that are useful and not overly expensive.
+
+[00:36] Alex:
+Perfect. Why don’t we start with the business at a high level. Sarah, maybe just a quick overview of BrightLane and where you feel the friction most.
+
+[00:45] Sarah:
+Sure. BrightLane sells home goods, gifts, seasonal decor, and some private-label products. We’ve grown pretty fast over the last two years. That’s been great, but a lot of our processes still work like we’re a five-store business. So I’d say our biggest issues are internal reporting, inventory coordination, and customer service follow-up. We’ve layered tools on top of tools and now people are doing a lot of manual copying, checking, summarizing, emailing, that kind of thing.
+
+[01:12] Alex:
+Got it. And when you say internal reporting, what does that actually look like today?
+
+[01:18] Marcus:
+Honestly, kind of ugly. Every Monday I pull store performance data from our POS, then I pull ecommerce metrics from Shopify, and then I try to combine that with inventory notes from store managers. We also track labor in another system. None of it lives together. So I usually spend like three or four hours every Monday morning just assembling a “what happened last week” report for leadership.
+
+[01:44] Alex:
+And that report is going to who?
+
+[01:46] Marcus:
+Sarah, finance, district managers, and sometimes merchandising depending on what’s going on.
+
+[01:53] Alex:
+And is it mostly quantitative reporting or are you also adding written commentary?
+
+[01:58] Marcus:
+Both. That’s part of the problem. The numbers are one piece, but then store managers send emails or fill out forms with things like “we ran out of this item,” “customers kept asking for this,” “foot traffic was weird because of weather,” “we had a staffing issue on Saturday,” and I’m trying to summarize all that into something useful.
+
+[02:18] Sarah:
+And a lot of that context matters more than the raw sales number by itself.
+
+[02:22] Alex:
+Yeah, that makes sense. Tina, what about on the customer side?
+
+[02:27] Tina:
+Customer support and customer experience are messy in a different way. We get inquiries from email, website chat, and social DMs. A lot of them are pretty repetitive. Things like “where’s my order,” “when will this item be back in stock,” “can I return in-store if I bought online,” “do you have this in blue,” stuff like that. My team answers most of it manually. We do use templates, but not in a smart way. So we still have people reading, triaging, routing, and rewriting the same answers over and over.
+
+[02:58] Alex:
+Roughly how much volume are you talking?
+
+[03:01] Tina:
+Depends on seasonality. Normal month maybe 1,500 to 2,000 customer messages across channels. Holiday months a lot more. And not everything should be automated, obviously, but I think maybe half to two-thirds are repetitive enough that a better workflow could help.
+
+[03:18] Alex:
+Okay, that’s meaningful volume. What systems are currently in play across the business?
+
+[03:24] Marcus:
+Shopify for ecommerce. Our POS is Lightspeed in stores. We use Gorgias for customer support. Slack internally. Google Workspace for docs and sheets. Some managers still email instead of using the form we created. We’ve got a few reports in Looker Studio, but they’re not really the source of truth. And inventory is… semi-centralized. We have one inventory planning tool, but it’s not very well adopted.
+
+[03:50] Sarah:
+That’s a nice way of saying it.
+
+[03:52] Marcus:
+Yeah.
+
+[03:54] Alex:
+No worries, this is very normal. Are there any hard constraints I should know? Security, compliance, budget, team skill set, anything like that?
+
+[04:04] Sarah:
+Budget matters. I’m not opposed to paying for something useful, but I do not want a bloated system with five subscriptions and a consultant dependency forever. We’d prefer something our ops team can actually understand. We don’t have internal engineers. We have one technically savvy operations analyst, but that’s about it.
+
+[04:23] Tina:
+And brand voice matters a lot if anything is customer-facing. We don’t want robotic responses going out to customers without some control.
+
+[04:31] Alex:
+Makes sense. Human review for external responses is totally reasonable, especially in phase one. Marcus, if you could wave a magic wand and automate one thing first, what would it be?
+
+[04:42] Marcus:
+Weekly reporting, easily. If I could upload or connect the sales, support, and store notes data and have something generate a leadership summary with red flags, trends, and recommended follow-ups, that would save real time and probably improve quality.
+
+[04:58] Alex:
+How do store notes come in right now?
+
+[05:00] Marcus:
+Mostly a Google Form that goes to a Sheet, but some people still send emails or Slack messages. So I’m consolidating multiple formats.
+
+[05:09] Alex:
+Okay. That’s actually a good use case because even semi-structured notes can be normalized. Sarah, what would make that weekly report feel valuable instead of just “faster”?
+
+[05:19] Sarah:
+Good question. I’d want it to do more than summarize. I’d want it to flag what matters. Like, don’t just tell me Store 8 sales were down 7%. Tell me that Store 8 was down, they also had two staffing callouts, and three managers mentioned low stock in a high-margin item, so maybe that’s the issue. I want prioritization, not just compression.
+
+[05:42] Alex:
+That’s helpful. So not just summarization, but synthesis and maybe some light reasoning.
+
+[05:47] Sarah:
+Exactly. And ideally, not hallucinated nonsense.
+
+[05:50] Alex:
+Fair. Very fair.
+
+[05:53] Tina:
+And on the support side, my dream would be something that reads incoming messages, categorizes them, drafts a response using our approved policies and brand tone, and either auto-sends for very low-risk stuff or puts it in a queue for review.
+
+[06:10] Alex:
+Do you have documentation already for policies like returns, exchanges, shipping, damaged goods?
+
+[06:15] Tina:
+Yes, but it’s scattered. Some in help center articles, some in internal docs, some kind of tribal knowledge.
+
+[06:23] Alex:
+That’s common. The nice thing is that’s fixable. If we were designing this in phases, I’d probably separate internal operations reporting from customer-facing automation so we don’t mix risk levels too early.
+
+[06:35] Sarah:
+That sounds smart. I do not want the first project to accidentally email customers the wrong thing.
+
+[06:40] Alex:
+Totally. So let me pressure test value. Marcus, how many hours per month do you think are spent on weekly reporting and related follow-up?
+
+[06:48] Marcus:
+For me personally, maybe 15 to 20 hours a month. Then probably another 8 to 10 hours across district managers and merchandising because they’re clarifying things after the report goes out.
+
+[07:00] Alex:
+So maybe 25 to 30 hours of management time monthly on that process.
+
+[07:05] Marcus:
+Yeah, that feels right.
+
+[07:07] Alex:
+Tina, for support, how many hours would you estimate are spent on repetitive first-pass handling?
+
+[07:13] Tina:
+A lot. Probably 60 to 80 hours a month conservatively, maybe more during peak. Not all of that disappears with automation, but even a 25% reduction would matter.
+
+[07:24] Alex:
+Right. Especially if it improves consistency. Are there any upcoming business events or deadlines making this more urgent?
+
+[07:31] Sarah:
+We have holiday planning starting in about three months. I’d really like some kind of internal reporting automation in place before then, because Q4 is where all the cracks show up. If the customer service piece comes later, that’s fine, but the internal summary and action recommendations would be immediately useful.
+
+[07:50] Alex:
+That’s good prioritization. So if we were keeping phase one narrow, I’m hearing something like: ingest meeting recordings and weekly operational data, transcribe and summarize the meeting, extract key decisions, combine with uploaded reports or notes, then generate an executive summary, objectives, action items, and maybe a simple slide deck or email for leadership. Does that track?
+
+[08:12] Marcus:
+Yes, that’s very close to what I’d want.
+
+[08:15] Sarah:
+And rough cost visibility. Like if it notices something is broken, I want to know the likely impact or at least where we should investigate. It doesn’t need to be perfect, but some rough business framing would be helpful.
+
+[08:27] Alex:
+Interesting. So maybe not true financial modeling, but maybe rules-based estimates or impact bands.
+
+[08:32] Sarah:
+Exactly. “Potential revenue impact,” “potential staffing cost issue,” that sort of thing.
+
+[08:37] Alex:
+Got it. And on the meeting side specifically, are these mostly leadership calls, store ops calls, or vendor meetings?
+
+[08:44] Marcus:
+Usually weekly leadership calls and ops reviews. They’re on Google Meet most of the time. Sometimes Zoom. People leave with action items, but then there’s always disagreement afterward about what was actually decided.
+
+[08:56] Tina:
+Yes. We definitely have the classic “I thought Marcus was doing that” problem.
+
+[09:01] Marcus:
+That is true.
+
+[09:03] Alex:
+Okay, that’s actually a very good starting use case because meeting summarization plus action-item extraction is relatively contained. Are recordings already available automatically?
+
+[09:12] Marcus:
+Sometimes. Not always. We can turn it on more consistently if needed.
+
+[09:16] Alex:
+And would you be okay with a workflow where someone uploads the video or audio plus maybe a spreadsheet or notes file into a folder, then the system processes it and outputs a summary package?
+
+[09:28] Sarah:
+Yes. That’s fine for a first version. It does not need to be magical. It just needs to save time and produce something useful.
+
+[09:35] Alex:
+Love that. That’s the right attitude for phase one. In terms of output format, what would leadership actually consume? Email, slide deck, PDF, dashboard?
+
+[09:44] Sarah:
+Email first. Slides second. Dashboard maybe eventually, but I don’t think we need to start there.
+
+[09:50] Marcus:
+Agreed. If it could output a concise email and a 4- or 5-slide deck template, that would be great.
+
+[09:56] Tina:
+And if the deck could be editable, even better. Like Google Slides or PowerPoint, not something flattened.
+
+[10:03] Alex:
+Yep, that’s very doable.
+
+[10:10] Marcus:
+Messy. Different naming conventions, different managers, occasional typos, inconsistent structure in comments.
+
+[10:17] Alex:
+Okay. That suggests we’d want a workflow with explicit preprocessing and maybe some validation before sending everything into a language model. Are there any metrics you always care about in the weekly view?
+
+[10:29] Sarah:
+Sales by store, comp trends if possible, top out-of-stock items, returns spikes, staffing issues, and major customer complaints or recurring themes.
+
+[10:41] Tina:
+On the customer side, I’d add response time, refund requests, damaged shipment mentions, and product confusion. We often learn that product pages are unclear because support gets flooded with the same question.
+
+[10:52] Alex:
+That’s a great feedback loop opportunity actually. Support as a source of merchandising and ecommerce insight.
+
+[10:58] Sarah:
+Exactly. Right now those insights are trapped in inboxes.
+
+[11:03] Alex:
+Okay. And who would own the workflow internally once it exists?
+
+[11:07] Marcus:
+Probably operations initially. With Tina contributing on the support taxonomy if we expand into that area.
+
+[11:14] Alex:
+And do you prefer low-code tools where possible, or are you open to a lightweight custom application if it reduces recurring costs?
+
+[11:21] Sarah:
+I’d say practical over ideological. Low-code is fine if it’s stable and not ridiculously expensive. Lightweight custom is fine if it’s maintainable by someone who didn’t build it.
+
+[11:32] Alex:
+Good answer. So maybe a hybrid. Something like cloud storage, transcription API, LLM summarization, and a thin orchestration layer. Possibly no-code or low-code for notifications and routing, depending on the stack.
+
+[11:45] Marcus:
+That sounds reasonable. I don’t need fancy. I need dependable.
+
+[11:49] Alex:
+That should be on a T-shirt.
+
+[11:52] Sarah:
+Yes.
+
+[11:54] Alex:
+Let’s talk budget range just loosely, because that tends to narrow architecture choices. Are you imagining a few hundred a month, low thousands, or more?
+
+[12:03] Sarah:
+For an initial workflow, I’d like software costs to stay under maybe $1,500 per month if possible, excluding one-time setup. If it proves real ROI, then obviously we can expand.
+
+[12:15] Alex:
+That’s helpful. That budget is workable for a narrowly scoped phase one. Especially if volume is around, say, 20 meetings a month plus some reporting documents.
+
+[12:24] Marcus:
+Yeah, that’s about right. Maybe 20 to 25 meetings that matter enough to process.
+
+[12:29] Alex:
+And average meeting length?
+
+[12:31] Marcus:
+Usually 30 to 60 minutes. The weekly leadership one is around 45.
+
+[12:36] Alex:
+Great. That’s manageable. One thing I’d likely recommend is keeping the workflow very auditable. Meaning transcript stored, extracted action items stored, source links attached, and maybe a confidence note where the model is less certain. Would that be useful?
+
+[12:51] Sarah:
+Yes, a lot. I don’t want black-box outputs. I want people to be able to say, “why is this recommendation here?” and trace it back.
+
+[12:59] Tina:
+Especially if the tool starts suggesting actions based on support tickets or meeting discussion. It needs to show its work, basically.
+
+[13:07] Alex:
+Exactly. And for the slide deck, do you want it visually polished or just clear and editable?
+
+[13:12] Sarah:
+Clear and editable. Nobody needs AI-generated art here.
+
+[13:16] Alex:
+Music to my ears. Okay, so if I were mapping a first version, I’d likely say: user uploads recording and optional supporting documents into a folder, automation triggers transcription, transcript and documents are cleaned and chunked, model generates summary, objectives, action items, and estimated business impact, then outputs an email draft and a short slide deck. A human reviews, edits if needed, and sends. Does that feel aligned?
+
+[13:42] Marcus:
+Yes.
+
+[13:43] Tina:
+Yep.
+
+[13:44] Sarah:
+Yes, as long as the recommendations are grounded enough to be useful.
+
+[13:49] Alex:
+Understood. I’d probably handle that by combining prompt instructions with simple business rules. So for example, if out-of-stock mentions exceed a threshold and sales are down in the same category, the workflow can flag that as a likely merchandising issue rather than pretending the model has magical certainty.
+
+[14:07] Sarah:
+That’s good. I like the combination of AI plus rules. I don’t want “AI intuition” without evidence.
+
+[14:13] Alex:
+Very fair. What would success look like 60 days after launch?
+
+[14:18] Marcus:
+For me, cutting my Monday reporting time in half, at least. And having leadership trust the output enough that they rely on it.
+
+[14:26] Tina:
+For me, success would be getting cleaner visibility into recurring support themes, even before we automate responses. I think that alone would help us fix problems upstream.
+
+[14:36] Sarah:
+For me it’s two things: time savings and better decisions. If this just makes busywork faster, that’s nice, but I’d really like it to improve prioritization.
+
+[14:47] Alex:
+That’s a strong framing. Are there any reasons this would fail internally? Adoption, messy process ownership, lack of discipline around uploads?
+
+[14:56] Marcus:
+Yes to all of those, honestly. The biggest issue is consistency. If managers don’t use the agreed format or don’t upload materials on time, the workflow won’t have good inputs.
+
+[15:08] Sarah:
+But that’s also why I think a meeting-based workflow is a good starting point. Fewer people involved, more controlled inputs.
+
+[15:14] Alex:
+I agree. Start where the signal is strongest. Then expand outward.
+
+[15:18] Tina:
+And maybe use that first project to build trust before we touch anything customer-facing.
+
+[15:23] Alex:
+Exactly. One more question on infrastructure preferences. Do you care whether this lives in Google, Microsoft, AWS, something else?
+
+[15:31] Marcus:
+No strong preference from me.
+
+[15:34] Sarah:
+We’re already deep in Google Workspace operationally, so if outputs can land there easily, that helps. But I care more about reliability than brand.
+
+[15:43] Alex:
+That’s fair. So Google Drive or a shared folder for intake and outputs may be the simplest UX, even if the processing happens elsewhere.
+
+[15:50] Sarah:
+Right.
+
+[15:51] Alex:
+Would you want the final output also posted into Slack?
+
+[15:54] Marcus:
+Yes, probably a notification to a leadership channel saying the summary package is ready.
+
+[16:00] Alex:
+Easy enough. Are there any approval requirements? Like should the email or deck always require Marcus or Sarah approval before distribution?
+
+[16:08] Sarah:
+Yes. At least initially. I would say human approval is mandatory before anything goes out broadly.
+
+[16:15] Alex:
+Perfect. That lowers risk. Let me summarize back what I’m hearing and you can tell me if I missed anything. BrightLane wants a practical AI automation workflow, likely starting with recorded leadership or operations meetings. The system should transcribe the meeting, generate an executive summary, identify top objectives, extract action items and next steps, and ideally incorporate supporting notes or metrics where available. It should then produce an email-friendly output and a short editable slide deck. The company values cost control, explainability, human review, and maintainability. Longer term, there is a second opportunity around customer support triage and drafted responses, but phase one should focus on internal operations reporting and meeting intelligence. Did I get that right?
+
+[16:59] Sarah:
+Yes, that’s very accurate.
+
+[17:01] Marcus:
+Yep.
+
+[17:02] Tina:
+That captures it.
+
+[17:04] Alex:
+Great. In terms of next steps, I’d probably propose a small proof of concept around one recurring meeting type. Maybe take three historical meeting recordings, plus any notes or related weekly reports, and test how well the workflow can produce consistent summaries and action-item extraction. Then we’d evaluate quality, cost, and where humans need to stay in the loop.
+
+[17:25] Sarah:
+That sounds right. I’d also want some very basic cost estimate before we commit, even if it’s directional.
+
+[17:31] Alex:
+Absolutely. I can put together something with a lightweight architecture option and maybe one slightly more scalable option so you can compare.
+
+[17:39] Marcus:
+And if possible, call out likely failure points. Like poor transcript quality, inconsistent naming, duplicated action items, that kind of thing.
+
+[17:47] Alex:
+Definitely. Those are exactly the things to surface early. Any must-have deliverables from your perspective besides the summary and deck?
+
+[17:55] Sarah:
+I’d like the three recommended actions to be really business-oriented, not generic. So not “improve communication.” More like “investigate Store 8 stockout pattern in bedding category,” that kind of thing.
+
+[18:06] Alex:
+Specific, grounded, and operational. Got it.
+
+[18:10] Tina:
+And for the future support use case, if you could maybe note what would be needed to expand into that later, that would help me make the internal case.
+
+[18:18] Alex:
+Sure. I can include that as a phase-two note. Anything else before we wrap?
+
+[18:24] Marcus:
+I think that covers it.
+
+[18:26] Sarah:
+No, this was good. I appreciate that you’re thinking about something practical versus a science project.
+
+[18:32] Alex:
+That is always the goal. I’ll follow up with a simple architecture, rough monthly costs, a proof-of-concept recommendation, and some notes on risks and assumptions. Thanks, everyone.
+
+[18:42] Tina:
+Thanks.
+
+[18:43] Marcus:
+Thanks, Alex.
+
+[18:44] Sarah:
+Thanks.
+synthetic_retail_ai_transcript.txt
+Rellenar y Firmar
+Mostrando synthetic_retail_ai_transcript.txt. 
